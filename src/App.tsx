@@ -208,9 +208,9 @@ const App: React.FC = () => {
       status: "success",
     };
 
-    // User B - Decrypted (if enabled)
     let newMessages = [plaintextMsg, encryptedMsg];
 
+    // User B - Decrypted (if enabled)
     if (simulatedUserB) {
       const { decrypted, error: decryptError } = decryptMessage(
         encrypted,
@@ -226,7 +226,7 @@ const App: React.FC = () => {
         key: validatedKey,
         timestamp: Date.now(),
         status: decryptError ? "error" : "success",
-        errorMessage: decryptError,
+        errorMessage: decryptError || undefined,
       };
 
       newMessages.push(decryptedMsg);
@@ -258,7 +258,14 @@ const App: React.FC = () => {
     <div className="app-container">
       {/* Sidebar */}
       <aside className="sidebar">
-        <div className="logo">CIPHER</div>
+        <nav className="nav-section logo-section">
+          <img
+            src="/cypher_logo.svg"
+            alt="CIPHER Logo"
+            className="logo-image"
+          />
+          <div className="logo">CIPHER</div>
+        </nav>
 
         <nav className="nav-section">
           <div className="nav-label">Navigation</div>

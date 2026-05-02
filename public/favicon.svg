@@ -1,0 +1,6 @@
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Lock icon for cipher -->
+  <rect x="6" y="14" width="20" height="14" rx="2" fill="#1ed760" stroke="#1ed760" stroke-width="1"/>
+  <path d="M10 14V10C10 7.24 12.24 5 15 5C17.76 5 20 7.24 20 10V14" fill="none" stroke="#1ed760" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="16" cy="21" r="1.5" fill="#121212"/>
+</svg>
