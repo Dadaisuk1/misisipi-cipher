@@ -1,50 +1,67 @@
-// Vigenere Cipher: Polyalphabetic substitution using a keyword
-const normalizeKey = (key: string): string => {
-  return key.toLowerCase().replace(/[^a-z]/g, "");
-};
+/**
+ * Vigenere Cipher
+ * Uses a repeating keyword to shift letters by variable amounts
+ * Key: text string (any length, no numbers)
+ */
 
-export const vigenereEncrypt = (text: string, key: string): string => {
-  const normalizedKey = normalizeKey(key);
-  if (!normalizedKey) throw new Error("Key must contain at least one letter");
+export const vigenere = {
+  encrypt: (plaintext: string, key: string): string => {
+    if (!key || key.length === 0) {
+      throw new Error('Key cannot be empty');
+    }
 
-  let keyIndex = 0;
-  return text
-    .split("")
-    .map((char) => {
-      if (/[a-z]/.test(char)) {
-        const shift = normalizedKey.charCodeAt(keyIndex % normalizedKey.length) - 97;
-        keyIndex++;
-        return String.fromCharCode(((char.charCodeAt(0) - 97 + shift) % 26) + 97);
-      }
-      if (/[A-Z]/.test(char)) {
-        const shift = normalizedKey.charCodeAt(keyIndex % normalizedKey.length) - 97;
-        keyIndex++;
-        return String.fromCharCode(((char.charCodeAt(0) - 65 + shift) % 26) + 65);
-      }
-      return char;
-    })
-    .join("");
-};
+    const keyUpper = key.toUpperCase();
+    let keyIndex = 0;
 
-export const vigenereDecrypt = (text: string, key: string): string => {
-  const normalizedKey = normalizeKey(key);
-  if (!normalizedKey) throw new Error("Key must contain at least one letter");
+    return plaintext
+      .split('')
+      .map((char) => {
+        if (/[A-Z]/.test(char)) {
+          const shift = keyUpper.charCodeAt(keyIndex % keyUpper.length) - 65;
+          const charCode = char.charCodeAt(0) - 65;
+          const shifted = (charCode + shift) % 26;
+          keyIndex++;
+          return String.fromCharCode(shifted + 65);
+        }
+        if (/[a-z]/.test(char)) {
+          const shift = keyUpper.charCodeAt(keyIndex % keyUpper.length) - 65;
+          const charCode = char.charCodeAt(0) - 97;
+          const shifted = (charCode + shift) % 26;
+          keyIndex++;
+          return String.fromCharCode(shifted + 97);
+        }
+        return char; // Keep non-alphabetic characters
+      })
+      .join('');
+  },
 
-  let keyIndex = 0;
-  return text
-    .split("")
-    .map((char) => {
-      if (/[a-z]/.test(char)) {
-        const shift = normalizedKey.charCodeAt(keyIndex % normalizedKey.length) - 97;
-        keyIndex++;
-        return String.fromCharCode(((char.charCodeAt(0) - 97 - shift + 26) % 26) + 97);
-      }
-      if (/[A-Z]/.test(char)) {
-        const shift = normalizedKey.charCodeAt(keyIndex % normalizedKey.length) - 97;
-        keyIndex++;
-        return String.fromCharCode(((char.charCodeAt(0) - 65 - shift + 26) % 26) + 65);
-      }
-      return char;
-    })
-    .join("");
+  decrypt: (ciphertext: string, key: string): string => {
+    if (!key || key.length === 0) {
+      throw new Error('Key cannot be empty');
+    }
+
+    const keyUpper = key.toUpperCase();
+    let keyIndex = 0;
+
+    return ciphertext
+      .split('')
+      .map((char) => {
+        if (/[A-Z]/.test(char)) {
+          const shift = keyUpper.charCodeAt(keyIndex % keyUpper.length) - 65;
+          const charCode = char.charCodeAt(0) - 65;
+          const shifted = (charCode - shift + 26) % 26;
+          keyIndex++;
+          return String.fromCharCode(shifted + 65);
+        }
+        if (/[a-z]/.test(char)) {
+          const shift = keyUpper.charCodeAt(keyIndex % keyUpper.length) - 65;
+          const charCode = char.charCodeAt(0) - 97;
+          const shifted = (charCode - shift + 26) % 26;
+          keyIndex++;
+          return String.fromCharCode(shifted + 97);
+        }
+        return char; // Keep non-alphabetic characters
+      })
+      .join('');
+  }
 };

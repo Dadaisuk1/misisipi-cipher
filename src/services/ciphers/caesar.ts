@@ -1,20 +1,53 @@
-// Caesar Cipher: Simple substitution with fixed shift
-export const caesarEncrypt = (text: string, key: number): string => {
-  const shift = key % 26;
-  return text
-    .split("")
-    .map((char) => {
-      if (/[a-z]/.test(char)) {
-        return String.fromCharCode(((char.charCodeAt(0) - 97 + shift) % 26) + 97);
-      }
-      if (/[A-Z]/.test(char)) {
-        return String.fromCharCode(((char.charCodeAt(0) - 65 + shift) % 26) + 65);
-      }
-      return char;
-    })
-    .join("");
-};
+/**
+ * Caesar Cipher
+ * Shifts each letter by a fixed number of positions in the alphabet
+ * Key: number between 1 and 25
+ */
 
-export const caesarDecrypt = (text: string, key: number): string => {
-  return caesarEncrypt(text, 26 - (key % 26));
+export const caesar = {
+  encrypt: (plaintext: string, key: number): string => {
+    if (key < 1 || key > 25) {
+      throw new Error('Key must be between 1 and 25');
+    }
+
+    return plaintext
+      .split('')
+      .map((char) => {
+        if (/[A-Z]/.test(char)) {
+          const charCode = char.charCodeAt(0) - 65;
+          const shifted = (charCode + key) % 26;
+          return String.fromCharCode(shifted + 65);
+        }
+        if (/[a-z]/.test(char)) {
+          const charCode = char.charCodeAt(0) - 97;
+          const shifted = (charCode + key) % 26;
+          return String.fromCharCode(shifted + 97);
+        }
+        return char; // Keep non-alphabetic characters
+      })
+      .join('');
+  },
+
+  decrypt: (ciphertext: string, key: number): string => {
+    if (key < 1 || key > 25) {
+      throw new Error('Key must be between 1 and 25');
+    }
+
+    return ciphertext
+      .split('')
+      .map((char) => {
+        if (/[A-Z]/.test(char)) {
+          const charCode = char.charCodeAt(0) - 65;
+          const shifted = (charCode - key + 26) % 26;
+          return String.fromCharCode(shifted + 65);
+        }
+        if (/[a-z]/.test(char)) {
+          const charCode = char.charCodeAt(0) - 97;
+          const shifted = (charCode - key + 26) % 26;
+          return String.fromCharCode(shifted + 97);
+        }
+        return char; // Keep non-alphabetic characters
+      })
+      .join('');
+  }
 };

@@ -1,112 +1,131 @@
-// Playfair Cipher: Digraph substitution using a 5x5 grid
-const createPlayfairGrid = (key: string): string[] => {
-  const alphabet = "abcdefghijklmnopqrstuvwxyz";
-  const gridKey = key
-    .toLowerCase()
-    .replace(/[^a-z]/g, "")
-    .replace(/j/g, "i");
+/**
+ * Playfair Cipher
+ * Uses a 5x5 grid to encrypt pairs of letters (digraphs)
+ * Key: text string (typically 4-8 characters, no 'J')
+ */
 
-  let grid = "";
-  const seen = new Set<string>();
-
-  // Add unique key characters
-  for (const char of gridKey) {
-    if (!seen.has(char)) {
-      grid += char;
-      seen.add(char);
+const createPlayfairGrid = (key: string): string[][] => {
+  // Remove duplicates and convert to uppercase
+  const keyChars = new Set<string>();
+  for (const char of key.toUpperCase()) {
+    if (/[A-Z]/.test(char) && char !== 'J') {
+      keyChars.add(char);
     }
   }
 
-  // Add remaining alphabet
+  // Create alphabet without 'J'
+  const alphabet = 'ABCDEFGHIKLMNOPQRSTUVWXYZ'; // Note: no J
+  const gridChars = [...keyChars];
+
   for (const char of alphabet) {
-    if (!seen.has(char)) {
-      grid += char;
+    if (!gridChars.includes(char)) {
+      gridChars.push(char);
     }
   }
 
-  return grid.split("");
+  // Create 5x5 grid
+  const grid: string[][] = [];
+  for (let i = 0; i < 5; i++) {
+    grid[i] = gridChars.slice(i * 5, (i + 1) * 5);
+  }
+
+  return grid;
 };
 
-const findPosition = (grid: string[], char: string): [number, number] => {
-  const index = grid.indexOf(char);
-  return [Math.floor(index / 5), index % 5];
+const findPosition = (grid: string[][], char: string): [number, number] => {
+  for (let i = 0; i < 5; i++) {
+    for (let j = 0; j < 5; j++) {
+      if (grid[i][j] === char) {
+        return [i, j];
+      }
+    }
+  }
+  return [0, 0]; // Fallback (shouldn't happen)
 };
 
-const preparePlaintext = (text: string): string => {
-  let prepared = text
-    .toLowerCase()
-    .replace(/[^a-z]/g, "")
-    .replace(/j/g, "i");
-
-  // Insert 'x' between repeated letters and at end if odd length
-  let result = "";
-  for (let i = 0; i < prepared.length; i++) {
-    result += prepared[i];
-    if (i < prepared.length - 1 && prepared[i] === prepared[i + 1]) {
-      result += "x";
+const preparePlaintext = (plaintext: string): string => {
+  let prepared = '';
+  for (const char of plaintext.toUpperCase()) {
+    if (/[A-Z]/.test(char)) {
+      prepared += char === 'J' ? 'I' : char; // Replace J with I
     }
   }
 
-  if (result.length % 2 === 1) result += "x";
-
-  return result;
-};
-
-export const playfairEncrypt = (text: string, key: string): string => {
-  const grid = createPlayfairGrid(key);
-  const prepared = preparePlaintext(text);
-
-  let result = "";
-  for (let i = 0; i < prepared.length; i += 2) {
-    const char1 = prepared[i];
-    const char2 = prepared[i + 1];
-
-    const [row1, col1] = findPosition(grid, char1);
-    const [row2, col2] = findPosition(grid, char2);
-
-    if (row1 === row2) {
-      // Same row: shift right
-      result += grid[row1 * 5 + ((col1 + 1) % 5)];
-      result += grid[row2 * 5 + ((col2 + 1) % 5)];
-    } else if (col1 === col2) {
-      // Same column: shift down
-      result += grid[((row1 + 1) % 5) * 5 + col1];
-      result += grid[((row2 + 1) % 5) * 5 + col2];
-    } else {
-      // Rectangle: swap columns
-      result += grid[row1 * 5 + col2];
-      result += grid[row2 * 5 + col1];
-    }
+  // Add padding 'X' if needed for odd length
+  if (prepared.length % 2 !== 0) {
+    prepared += 'X';
   }
 
-  return result;
+  return prepared;
 };
 
-export const playfairDecrypt = (text: string, key: string): string => {
-  const grid = createPlayfairGrid(key);
-
-  let result = "";
-  for (let i = 0; i < text.length; i += 2) {
-    const char1 = text[i];
-    const char2 = text[i + 1];
-
-    const [row1, col1] = findPosition(grid, char1);
-    const [row2, col2] = findPosition(grid, char2);
-
-    if (row1 === row2) {
-      // Same row: shift left
-      result += grid[row1 * 5 + ((col1 - 1 + 5) % 5)];
-      result += grid[row2 * 5 + ((col2 - 1 + 5) % 5)];
-    } else if (col1 === col2) {
-      // Same column: shift up
-      result += grid[((row1 - 1 + 5) % 5) * 5 + col1];
-      result += grid[((row2 - 1 + 5) % 5) * 5 + col2];
-    } else {
-      // Rectangle: swap columns
-      result += grid[row1 * 5 + col2];
-      result += grid[row2 * 5 + col1];
+export const playfair = {
+  encrypt: (plaintext: string, key: string): string => {
+    if (!key || key.length === 0) {
+      throw new Error('Key cannot be empty');
     }
-  }
 
-  return result.replace(/x+$/, ""); // Remove trailing 'x' padding
+    const grid = createPlayfairGrid(key);
+    const prepared = preparePlaintext(plaintext);
+
+    let ciphertext = '';
+
+    for (let i = 0; i < prepared.length; i += 2) {
+      const char1 = prepared[i];
+      const char2 = prepared[i + 1];
+
+      const [row1, col1] = findPosition(grid, char1);
+      const [row2, col2] = findPosition(grid, char2);
+
+      if (row1 === row2) {
+        // Same row: shift right with wrap-around
+        ciphertext += grid[row1][(col1 + 1) % 5];
+        ciphertext += grid[row2][(col2 + 1) % 5];
+      } else if (col1 === col2) {
+        // Same column: shift down with wrap-around
+        ciphertext += grid[(row1 + 1) % 5][col1];
+        ciphertext += grid[(row2 + 1) % 5][col2];
+      } else {
+        // Rectangle: swap columns
+        ciphertext += grid[row1][col2];
+        ciphertext += grid[row2][col1];
+      }
+    }
+
+    return ciphertext;
+  },
+
+  decrypt: (ciphertext: string, key: string): string => {
+    if (!key || key.length === 0) {
+      throw new Error('Key cannot be empty');
+    }
+
+    const grid = createPlayfairGrid(key);
+
+    let plaintext = '';
+
+    for (let i = 0; i < ciphertext.length; i += 2) {
+      const char1 = ciphertext[i];
+      const char2 = ciphertext[i + 1];
+
+      const [row1, col1] = findPosition(grid, char1);
+      const [row2, col2] = findPosition(grid, char2);
+
+      if (row1 === row2) {
+        // Same row: shift left with wrap-around
+        plaintext += grid[row1][(col1 - 1 + 5) % 5];
+        plaintext += grid[row2][(col2 - 1 + 5) % 5];
+      } else if (col1 === col2) {
+        // Same column: shift up with wrap-around
+        plaintext += grid[(row1 - 1 + 5) % 5][col1];
+        plaintext += grid[(row2 - 1 + 5) % 5][col2];
+      } else {
+        // Rectangle: swap columns
+        plaintext += grid[row1][col2];
+        plaintext += grid[row2][col1];
+      }
+    }
+
+    return plaintext;
+  }
 };
