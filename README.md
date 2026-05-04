@@ -1,5 +1,9 @@
 # Cipher Chat - Classical Encryption Learning Platform
 
+<div align="center">
+  <img src="https://github.com/Dadaisuk1/img_repo/blob/main/JPEG/Cypher.jpg" alt="Alt text">
+</div>
+
 A modern, interactive web application for learning and experimenting with classical cipher algorithms. Built with React, TypeScript, and Spotify-inspired dark theme design.
 
 ## 🎯 Features
